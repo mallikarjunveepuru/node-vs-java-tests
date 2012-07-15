@@ -3,6 +3,6 @@
  * GET Hello World! message.
  */
 
-exports.index = function(req, res){
-    res.render('hello');
+exports.hello = function(req, res){
+    res.end('Hello World!\n');
 };
