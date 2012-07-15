@@ -4,5 +4,6 @@
  */
 
 exports.hello = function(req, res){
-    res.end('Hello World!\n');
+    res.render('hello', { title: 'Express' });
+    //res.end('Hello World!\n');
 };
