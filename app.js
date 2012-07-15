@@ -25,7 +25,9 @@ app.configure('development', function(){
   app.use(express.errorHandler());
 });
 
-app.get('/hello/', routes.hello);
+app.get('/hello/', function(req, res) {
+    res.end('Hello World!\n');
+});
 app.get('/', routes.index);
 
 http.createServer(app).listen(app.get('port'), function(){
