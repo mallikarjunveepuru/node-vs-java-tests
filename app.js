@@ -1,35 +1,49 @@
-
 /**
  * Module dependencies.
  */
 
-var express = require('express')
+var cluster = require('cluster')
+  , express = require('express')
   , routes = require('./routes')
   , http = require('http');
 
-var app = express();
+if (cluster.isMaster) {
+    // Fork workers.
+    for (var i = 0; i < 4; i++) {
+        cluster.fork();
+    }
 
-app.configure(function(){
-  app.set('port', process.env.PORT || 8000);
-  app.set('views', __dirname + '/views');
-  app.set('view engine', 'jade');
-  app.use(express.favicon());
-  app.use(express.logger('dev'));
-  app.use(express.bodyParser());
-  app.use(express.methodOverride());
-  app.use(app.router);
-  app.use(express.static(__dirname + '/public'));
-});
+    cluster.on('exit', function(worker, code, signal) {
+        console.log('worker ' + worker.pid + ' died');
+    });
+} else {
+    // Workers can share any TCP connection
+    // In this case its a HTTP server
 
-app.configure('development', function(){
-  app.use(express.errorHandler());
-});
+    var app = express();
 
-app.get('/hello/', function(req, res) {
-    res.end('Hello World!\n');
-});
-app.get('/', routes.index);
+    app.configure(function(){
+        app.set('port', process.env.PORT || 8000);
+        app.set('views', __dirname + '/views');
+        app.set('view engine', 'jade');
+        app.use(express.favicon());
+        app.use(express.logger('dev'));
+        app.use(express.bodyParser());
+        app.use(express.methodOverride());
+        app.use(app.router);
+        app.use(express.static(__dirname + '/public'));
+    });
 
-http.createServer(app).listen(app.get('port'), function(){
-  console.log("Express server listening on port " + app.get('port'));
-});
+    app.configure('development', function(){
+        app.use(express.errorHandler());
+    });
+
+    app.get('/hello/', function(req, res) {
+        res.end('Hello World!\n');
+    });
+    app.get('/', routes.index);
+
+    http.createServer(app).listen(app.get('port'), function(){
+        console.log("Express server listening on port " + app.get('port'));
+    });
+}
